@@ -1,18 +1,61 @@
-p = 0.27
-# The result of the random variable is either yes or no, i.e. 0 and 1 for a Bernoulli's experiment.
-X = [0, 1]
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import rv_continuous
 
-# pmf of the bernoulli single trial in %
-pmf_bd_in_percent = bernoulli.pmf(X, p) * 100
+title_pdf = 'Probability distribution - PDF'
+title_hist = r'Histogram by Minute(width = $\frac{1}{60}$  = 0.017)'
+n = 5
+start = 0
+tick_increment = (1/60)
 
-df = pd.DataFrame({"probability in [%]" : pmf_bd_in_percent}, index=['0 (Against)', '1 (For)']);
-df.index.name = "Values of Random Variable X (0, 1)"
+def my_pdf(y):
+    return np.exp(y * -0.5) * 0.15 + np.exp(-0.25 * y) * 0.175
 
-# Create a bar plot for "pmf" function
-# show graphical representation (following https://plotly.com/python/bar-charts/)
-fig = px.bar(df, y='probability in [%]', color='probability in [%]',
-   title="Bernoulli Distribution (PMF) votes p(for)=0.27 & p(against) = 0.73", width=700, barmode='group');
-fig.update_traces(width=0.1)
-# display figure
-fig.show();
-fig.write_image("images/task_1_a.svg")
+def my_cdf(y):
+    return 1 - (np.exp(y * -0.5) * 0.3 + np.exp(-0.25 * y) * 0.7)
+
+# Creating continuous distribution
+class my_dist(rv_continuous):
+    def _cdf(self, y):
+        return my_cdf(y)
+
+x = np.arange(0, n, tick_increment)
+my_distribution = my_dist()
+p = my_pdf(x)
+cdf = my_cdf(x)
+
+#PDF
+fig, ax = plt.subplots(1, 1, figsize=(20, 10))
+ax.set_title(title_pdf, fontsize=15)
+ax.set_xlabel('Time to hear an owl in hours', fontsize=15)
+ax.set_ylabel('Probability', fontsize=15)
+plt.xticks(np.arange(0, n, 0.5))
+
+# Label pdf
+plt.axvline(my_distribution.ppf(0.25), label='Q1', c='tab:green', linestyle='solid')
+plt.axvline(my_distribution.ppf(0.5), label='median', c='tab:brown', linestyle='solid')
+plt.axvline(my_distribution.ppf(0.75), label='Q3', c='tab:red', linestyle='solid')
+plt.axvline(1.3, label='mean', c='tab:cyan', linestyle='solid')
+plt.axvline(2.04, label='variance', c='tab:blue', linestyle='solid')
+
+plt.plot(x, p, 'co', ms=1, label='PDF')
+ax.grid(True)
+plt.legend(loc='best', frameon=True)
+plt.savefig('images/task_1_c_pdf.svg')
+
+#Histogram
+fig, ax_hist = plt.subplots(1, 1, figsize=(20, 10))
+ax_hist.set_title(title_hist, fontsize=15)
+ax_hist.set_xlabel('Time to hear an owl in Y hours', fontsize=15)
+ax_hist.set_ylabel('Frequency', fontsize=15)
+
+# Get random samples for the histogram following the distribution
+samples = my_distribution.rvs(size=1000)
+min_num = min(samples)
+max_num = max(samples)
+plt.xticks(np.arange(0, round(max_num), 1))
+# Width of histogram by minute which is (1/60)
+bins = round((max_num-min_num)/(1/60))
+plt.hist(samples, bins=bins, color='b')
+# Show & save plot
+plt.savefig('images/task_1_c_hist.svg')
