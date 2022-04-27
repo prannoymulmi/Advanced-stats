@@ -1,0 +1,18 @@
+p = 0.27
+# The result of the random variable is either yes or no, i.e. 0 and 1 for a Bernoulli's experiment.
+X = [0, 1]
+
+# pmf of the bernoulli single trial in %
+pmf_bd_in_percent = bernoulli.pmf(X, p) * 100
+
+df = pd.DataFrame({"probability in [%]" : pmf_bd_in_percent}, index=['0 (Against)', '1 (For)']);
+df.index.name = "Values of Random Variable X (0, 1)"
+
+# Create a bar plot for "pmf" function
+# show graphical representation (following https://plotly.com/python/bar-charts/)
+fig = px.bar(df, y='probability in [%]', color='probability in [%]',
+   title="Bernoulli Distribution (PMF) votes p(for)=0.27 & p(against) = 0.73", width=700, barmode='group');
+fig.update_traces(width=0.1)
+# display figure
+fig.show();
+fig.write_image("images/task_1_a.svg")
